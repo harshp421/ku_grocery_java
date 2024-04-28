@@ -1,4 +1,3 @@
-import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -6,19 +5,22 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import javax.swing.*;
 
 public class CashierDashboard extends JFrame {
+
     private JComboBox<String> categoryComboBox;
     private JComboBox<String> productComboBox;
     private JComboBox<String> sizeComboBox;
     private JTextField productIdField;
     private JTextArea productDetailsArea;
     private JSpinner quantitySpinner;
-
+    private LoginPage loginPage;
     private List<Product> productList;
     private List<Product> cart;
 
-    public CashierDashboard() {
+    public CashierDashboard(LoginPage loginPage) {
+        this.loginPage = loginPage;
         setTitle("Cashier Dashboard");
         setSize(800, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -102,16 +104,47 @@ public class CashierDashboard extends JFrame {
             }
         });
 
+        // North panel
+        JPanel northPanel = new JPanel();
+        northPanel.setPreferredSize(new Dimension(800, 50)); // Expl
+
+        JPanel leftPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JLabel welcomeLabel = new JLabel("Welcome to Cashier Dashboard");
+        leftPanel.add(welcomeLabel);
+
+        JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));   
+        JButton logoutButton = new JButton("Logout");
+        logoutButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                logout();
+            }
+        });
+
+        rightPanel.add(logoutButton);
+
+        // Add sub-panels to northPanel
+        northPanel.add(leftPanel, BorderLayout.WEST);
+        northPanel.add(rightPanel, BorderLayout.EAST);
+
+        JPanel combinedNorthPanel = new JPanel();
+        combinedNorthPanel.setLayout(new BoxLayout(combinedNorthPanel, BoxLayout.Y_AXIS));
+        combinedNorthPanel.add(northPanel);
+        combinedNorthPanel.add(selectionPanel);
         // Add Components to Main Panel
-        mainPanel.add(selectionPanel, BorderLayout.NORTH);
         mainPanel.add(detailsScrollPane, BorderLayout.CENTER);
         mainPanel.add(quantityLabel, BorderLayout.WEST);
         mainPanel.add(quantitySpinner, BorderLayout.WEST);
         mainPanel.add(addButton, BorderLayout.WEST);
         mainPanel.add(cartPanel, BorderLayout.EAST);
         mainPanel.add(finishButton, BorderLayout.SOUTH);
+        mainPanel.add(combinedNorthPanel, BorderLayout.NORTH);
 
         add(mainPanel);
+
+        validate();
+        repaint();
+
         setVisible(true);
 
         // Initialize product list and cart
@@ -125,6 +158,11 @@ public class CashierDashboard extends JFrame {
 
         // Initialize product comboboxes
         updateProductComboBox();
+    }
+
+    private void logout() {
+        this.setVisible(false); // Hide the CashierDashboard
+        loginPage.setVisible(true); // Show the LoginPage again
     }
 
     private void updateProductComboBox() {
@@ -145,16 +183,16 @@ public class CashierDashboard extends JFrame {
         String selectedProductId = productIdField.getText().trim();
 
         for (Product product : productList) {
-            if (product.getCategory().equals(selectedCategory) &&
-                    product.getName().equals(selectedProductName) &&
-                    product.getSize().equals(selectedSize) &&
-                    product.getProductId().equals(selectedProductId)) {
-                String details = "Product ID: " + product.getProductId() + "\n" +
-                        "Category: " + product.getCategory() + "\n" +
-                        "Size: " + product.getSize() + "\n" +
-                        "Description: " + product.getDescription() + "\n" +
-                        "Price: $" + product.getPrice() + "\n" +
-                        "Stock Quantity: " + product.getStockQuantity();
+            if (product.getCategory().equals(selectedCategory)
+                    && product.getName().equals(selectedProductName)
+                    && product.getSize().equals(selectedSize)
+                    && product.getProductId().equals(selectedProductId)) {
+                String details = "Product ID: " + product.getProductId() + "\n"
+                        + "Category: " + product.getCategory() + "\n"
+                        + "Size: " + product.getSize() + "\n"
+                        + "Description: " + product.getDescription() + "\n"
+                        + "Price: $" + product.getPrice() + "\n"
+                        + "Stock Quantity: " + product.getStockQuantity();
                 productDetailsArea.setText(details);
                 return;
             }
@@ -170,10 +208,10 @@ public class CashierDashboard extends JFrame {
         int quantity = (int) quantitySpinner.getValue();
 
         for (Product product : productList) {
-            if (product.getCategory().equals(selectedCategory) &&
-                    product.getName().equals(selectedProductName) &&
-                    product.getSize().equals(selectedSize) &&
-                    product.getProductId().equals(selectedProductId)) {
+            if (product.getCategory().equals(selectedCategory)
+                    && product.getName().equals(selectedProductName)
+                    && product.getSize().equals(selectedSize)
+                    && product.getProductId().equals(selectedProductId)) {
                 Product cartProduct = new Product(product.getName(), product.getProductId(), product.getCategory(),
                         product.getSize(), product.getDescription(), product.getPrice(), quantity);
                 cart.add(cartProduct);
