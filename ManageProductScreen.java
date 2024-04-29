@@ -5,6 +5,8 @@ import java.awt.event.*;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.FileWriter;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import java.io.IOException;
 
 public class ManageProductScreen extends JFrame {
@@ -97,59 +99,112 @@ public class ManageProductScreen extends JFrame {
 
         // Load initial product data into the table
         loadProductData();
+     // Add list selection listener to the product table
+productTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+    public void valueChanged(ListSelectionEvent event) {
+        if (!event.getValueIsAdjusting()) {
+            int selectedRow = productTable.getSelectedRow();
+            if (selectedRow != -1) {
+                displaySelectedProduct(selectedRow);
+            }
+        }
+    }
+});
+
 
         setVisible(true); // Display the frame
     }
 
-    private void loadProductData() {
-        String csvFile = "products.csv";
-        String line;
-        String[] headers = {"Name", "Product ID", "Category", "Size", "Description", "Price", "Stock Quantity"};
+   private void loadProductData() {
+    String csvFile = "products.csv";
+    String line;
+    String[] headers = {"Name", "Product ID", "Category", "Size", "Description", "Price", "Stock Quantity"};
 
-        // Set table headers
-        tableModel.setColumnIdentifiers(headers);
+    // Clear existing data in the table model
+    tableModel.setRowCount(0); // Clear existing rows
 
-        try (BufferedReader br = new BufferedReader(new FileReader(csvFile))) {
-            while ((line = br.readLine()) != null) {
-                String[] data = line.split(",");
-                if (data.length == 7) {
-                    tableModel.addRow(data);
-                }
+    // Set table headers
+    tableModel.setColumnIdentifiers(headers);
+
+    try (BufferedReader br = new BufferedReader(new FileReader(csvFile))) {
+        while ((line = br.readLine()) != null) {
+            String[] data = line.split(",");
+
+            // Check if the data has the expected number of elements
+            if (data.length == headers.length) {
+                tableModel.addRow(data); // Add row to the table model
+            } else {
+                // Log or display a message for unexpected data
+                System.err.println("Skipping invalid data: " + line);
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(null, "Error loading product data from file: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
+    } catch (IOException e) {
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(null, "Error loading product data from file: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+    }
+}
+private void displaySelectedProduct(int rowIndex) {
+    nameField.setText(tableModel.getValueAt(rowIndex, 0).toString());
+    productIdField.setText(tableModel.getValueAt(rowIndex, 1).toString());
+    categoryField.setText(tableModel.getValueAt(rowIndex, 2).toString());
+    sizeField.setText(tableModel.getValueAt(rowIndex, 3).toString());
+    descriptionField.setText(tableModel.getValueAt(rowIndex, 4).toString());
+    priceField.setText(tableModel.getValueAt(rowIndex, 5).toString());
+    stockQuantityField.setText(tableModel.getValueAt(rowIndex, 6).toString());
+}
+
+
+
+  private void addProduct() {
+    String name = nameField.getText();
+    String productId = productIdField.getText();
+    String category = categoryField.getText();
+    String size = sizeField.getText();
+    String description = descriptionField.getText();
+    String priceText = priceField.getText();
+    String stockQuantityText = stockQuantityField.getText();
+
+    // Validate input fields
+    if (name.isEmpty() || productId.isEmpty() || category.isEmpty() || size.isEmpty() || description.isEmpty() || priceText.isEmpty() || stockQuantityText.isEmpty() || !isDouble(priceText) || !isInteger(stockQuantityText)) {
+        JOptionPane.showMessageDialog(null, "Please fill in all the fields with valid values.", "Error", JOptionPane.ERROR_MESSAGE);
+        return;
     }
 
-    private void addProduct() {
-        String name = nameField.getText();
-        String productId = productIdField.getText();
-        String category = categoryField.getText();
-        String size = sizeField.getText();
-        String description = descriptionField.getText();
-        double price = Double.parseDouble(priceField.getText());
-        int stockQuantity = Integer.parseInt(stockQuantityField.getText());
+    // Add product to table
+    String[] rowData = {name, productId, category, size, description, priceText, stockQuantityText};
+    tableModel.addRow(rowData);
 
-        // Validate input fields
-        if (name.isEmpty() || productId.isEmpty() || category.isEmpty() || size.isEmpty() || description.isEmpty() || priceField.getText().isEmpty() || stockQuantityField.getText().isEmpty()) {
-            JOptionPane.showMessageDialog(null, "Please fill in all the fields.", "Error", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
+    // Clear input fields after adding
+    clearFields();
 
-        // Add product to table
-        String[] rowData = {name, productId, category, size, description, String.valueOf(price), String.valueOf(stockQuantity)};
-        tableModel.addRow(rowData);
+    // Save data to file
+    saveDataToFile();
+}
 
-        // Clear input fields after adding
-        clearFields();
-
-        // Save data to file
-        saveDataToFile();
+// Helper method to check if a string can be parsed as a double
+private boolean isDouble(String str) {
+    try {
+        Double.parseDouble(str);
+        return true;
+    } catch (NumberFormatException e) {
+        return false;
     }
+}
 
-  private void updateProduct() {
+// Helper method to check if a string can be parsed as an integer
+private boolean isInteger(String str) {
+    try {
+        Integer.parseInt(str);
+        return true;
+    } catch (NumberFormatException e) {
+        return false;
+    }
+}
+
+
+private void updateProduct() {
     int selectedRow = productTable.getSelectedRow();
+
     if (selectedRow != -1) {
         String name = nameField.getText();
         String productId = productIdField.getText();
@@ -159,31 +214,33 @@ public class ManageProductScreen extends JFrame {
         String priceText = priceField.getText();
         String stockQuantityText = stockQuantityField.getText();
 
-        // Validate input fields
+        // Check if any field is empty
         if (name.isEmpty() || productId.isEmpty() || category.isEmpty() || size.isEmpty() || description.isEmpty() || priceText.isEmpty() || stockQuantityText.isEmpty()) {
             JOptionPane.showMessageDialog(null, "Please fill in all the fields.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
-        // Validate price and stock quantity fields
         try {
             double price = Double.parseDouble(priceText);
             int stockQuantity = Integer.parseInt(stockQuantityText);
 
             // Update selected row in table
-            productTable.setValueAt(name, selectedRow, 0);
-            productTable.setValueAt(productId, selectedRow, 1);
-            productTable.setValueAt(category, selectedRow, 2);
-            productTable.setValueAt(size, selectedRow, 3);
-            productTable.setValueAt(description, selectedRow, 4);
-            productTable.setValueAt(price, selectedRow, 5);
-            productTable.setValueAt(stockQuantity, selectedRow, 6);
+            tableModel.setValueAt(name, selectedRow, 0);
+            tableModel.setValueAt(productId, selectedRow, 1);
+            tableModel.setValueAt(category, selectedRow, 2);
+            tableModel.setValueAt(size, selectedRow, 3);
+            tableModel.setValueAt(description, selectedRow, 4);
+            tableModel.setValueAt(price, selectedRow, 5);
+            tableModel.setValueAt(stockQuantity, selectedRow, 6);
+
+            // Save data to file
+            saveDataToFile();
 
             // Clear input fields after updating
             clearFields();
 
-            // Save data to file
-            saveDataToFile();
+            // Show success message
+            JOptionPane.showMessageDialog(null, "Product updated successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
         } catch (NumberFormatException ex) {
             JOptionPane.showMessageDialog(null, "Please enter valid values for price and stock quantity.", "Error", JOptionPane.ERROR_MESSAGE);
         }
@@ -191,6 +248,13 @@ public class ManageProductScreen extends JFrame {
         JOptionPane.showMessageDialog(null, "Please select a product to edit.", "Error", JOptionPane.ERROR_MESSAGE);
     }
 }
+
+
+
+private boolean validateFields(String name, String productId, String category, String size, String description, String priceText, String stockQuantityText) {
+    return !name.isEmpty() && !productId.isEmpty() && !category.isEmpty() && !size.isEmpty() && !description.isEmpty() && !priceText.isEmpty() && !stockQuantityText.isEmpty();
+}
+
 
 
 

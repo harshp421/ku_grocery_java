@@ -1,3 +1,19 @@
-Apple,P001,Fruits,Large,Fresh and juicy,1.50,100
-Banana,P002,Fruits,Large,Fresh and delicious,1.20,200
-Mango,P004,Fruits,Large,This is a good quality mango,1.50,100
+Pen,P001,Stationary,Regular,"Ballpoint pen with blue ink",1.5,10
+Pen,P002,Stationary,Medium,"Ballpoint pen with black ink",2.0,80
+Pencil,P003,Stationary,Regular,"Wooden pencil HB grade",1.0,120
+Pencil,P004,Stationary,Medium,"Mechanical pencil 0.7mm lead",2.5,90
+Notebook,N001,Stationary,A5,"Spiral-bound notebook 100 pages",3.0,60
+Notebook,N002,Stationary,A4,"Hardcover notebook 200 pages",5.0,40
+Chocolate,C001,Sweets,Small,"Milk chocolate bar 50g",1.0,50
+Chocolate,C002,Sweets,Large,"Dark chocolate bar 100g",2.0,300
+Candy,C003,Sweets,Regular,"Assorted fruit-flavored candies",0.5,100
+Candy,C004,Sweets,Family Pack,"Mixed bag of candies 500g",5.0,20
+Cake,C005,Sweets,Small,"Vanilla sponge cake single slice",2.5,25
+Cake,C006,Sweets,Medium,"Chocolate fudge cake 500g",10.0,10
+Water,W001,Drinks,500ml,"Bottled mineral water still",1.0,200
+Water,W002,Drinks,1L,"Bottled mineral water sparkling",1.5,150
+Juice,J001,Drinks,250ml,"Orange juice tetra pack",2.0,100
+Juice,J002,Drinks,1L,"Apple juice carton",3.0,80
+Soda,S001,Drinks,330ml,"Cola can",1.5,120
+Soda,S002,Drinks,2L,"Lemon-lime soda bottle",2.5,90
+daru,d0001,Drink,Large,full,500,120

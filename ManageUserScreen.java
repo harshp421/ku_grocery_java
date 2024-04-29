@@ -140,38 +140,38 @@ public class ManageUserScreen extends JFrame {
         clearFields();
     }
 
-    private void updateUser() {
-        int selectedRow = userTable.getSelectedRow();
-        if (selectedRow != -1) {
-            String username = usernameField.getText();
-            String userId = userIdField.getText();
-            String role = roleField.getText();
+        private void updateUser() {
+            int selectedRow = userTable.getSelectedRow();
+            if (selectedRow != -1) {
+                String username = usernameField.getText();
+                String userId = userIdField.getText();
+                String role = roleField.getText();
 
-            tableModel.setValueAt(username, selectedRow, 0);
-            tableModel.setValueAt(userId, selectedRow, 1);
-            tableModel.setValueAt(role, selectedRow, 2);
+                tableModel.setValueAt(username, selectedRow, 0);
+                tableModel.setValueAt(userId, selectedRow, 1);
+                tableModel.setValueAt(role, selectedRow, 2);
 
-            try {
-                FileWriter writer = new FileWriter("users.csv");
-                for (int i = 0; i < tableModel.getRowCount(); i++) {
-                    for (int j = 0; j < tableModel.getColumnCount(); j++) {
-                        writer.append(tableModel.getValueAt(i, j).toString());
-                        if (j != tableModel.getColumnCount() - 1) {
-                            writer.append(",");
+                try {
+                    FileWriter writer = new FileWriter("users.csv");
+                    for (int i = 0; i < tableModel.getRowCount(); i++) {
+                        for (int j = 0; j < tableModel.getColumnCount(); j++) {
+                            writer.append(tableModel.getValueAt(i, j).toString());
+                            if (j != tableModel.getColumnCount() - 1) {
+                                writer.append(",");
+                            }
                         }
+                        writer.append("\n");
                     }
-                    writer.append("\n");
+                    writer.close();
+                    clearFields();
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                    JOptionPane.showMessageDialog(null, "Error updating user: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                 }
-                writer.close();
-                clearFields();
-            } catch (IOException ex) {
-                ex.printStackTrace();
-                JOptionPane.showMessageDialog(null, "Error updating user: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(null, "Please select a user to update.", "Error", JOptionPane.ERROR_MESSAGE);
             }
-        } else {
-            JOptionPane.showMessageDialog(null, "Please select a user to update.", "Error", JOptionPane.ERROR_MESSAGE);
         }
-    }
 
     private void deleteUser() {
         int selectedRow = userTable.getSelectedRow();
