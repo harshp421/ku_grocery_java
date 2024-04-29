@@ -1,9 +1,10 @@
+
 import java.io.*;
 import java.util.*;
-
 import javax.swing.JOptionPane;
 
 public class Product {
+
     private String name;
     private String productId;
     private String category;
@@ -78,6 +79,7 @@ public class Product {
     public void setStockQuantity(int stockQuantity) {
         this.stockQuantity = stockQuantity;
     }
+
     public void saveToFile(String filename) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename, true))) {
             String productLine = String.format("%s,%s,%s,%s,%s,%.2f,%d\n",
@@ -157,17 +159,57 @@ public class Product {
     }
 
     // Example usage:
-  /*  public static void main(String[] args) {
-        Product product1 = new Product("Apple", "P001", "Fruits", "Large", "Fresh and juicy", 1.5, 100);
-        Product product2 = new Product("Banana", "P002", "Fruits", "Medium", "Rich in potassium", 1.0, 150);
-        Product product3 = new Product("Milk", "P003", "Dairy", "1 liter", "Full fat", 2.5, 50);
+    public static void main(String[] args) {
+        try (Scanner scanner = new Scanner(System.in)) {
+            String filename = "products.csv";
+            
+            System.out.println("How many products do you want to add?");
+            int count = Integer.parseInt(scanner.nextLine());
+            
+            for (int i = 0; i < count; i++) {
+                System.out.println("Adding product " + (i + 1));
+                System.out.println("Enter product name:");
+                String name = scanner.nextLine();
+                
+                System.out.println("Enter product ID:");
+                String productId = scanner.nextLine();
+                
+                System.out.println("Choose category (1. Stationary, 2. Sweets, 3. Drinks):");
+                String category = getCategoryFromChoice(scanner.nextLine());
+                
+                System.out.println("Enter size:");
+                String size = scanner.nextLine();
+                
+                System.out.println("Enter description:");
+                String description = scanner.nextLine();
+                
+                System.out.println("Enter price:");
+                double price = Double.parseDouble(scanner.nextLine());
+                
+                System.out.println("Enter quantity:");
+                int quantity = Integer.parseInt(scanner.nextLine());
+                
+                Product product = new Product(name, productId, category, size, description, price, quantity);
+                product.saveToFile(filename);
+            }
+        }
+    }
 
-        // Save product details to a file
-        product1.saveToFile("products.csv");
-        product2.saveToFile("products.csv");
-        product3.saveToFile("products.csv");
-        // Update product with productId "P002" in products.csv
-        Product updatedProduct = new Product("Banana", "P002", "Fruits", "Large", "Fresh and delicious", 1.2, 200);
-        updateProduct("products.csv", "P002", updatedProduct);
-    }*/
+    private static String getCategoryFromChoice(String choice) {
+        switch (choice) {
+            case "1" -> {
+                return "Stationary";
+            }
+            case "2" -> {
+                return "Sweets";
+            }
+            case "3" -> {
+                return "Drinks";
+            }
+            default -> {
+                System.out.println("Invalid choice, defaulting to Stationary");
+                return "Stationary";
+            }
+        }
+    }
 }

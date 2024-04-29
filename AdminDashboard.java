@@ -1,6 +1,6 @@
-import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import javax.swing.*;
 
 public class AdminDashboard extends JFrame {
     public AdminDashboard() {
@@ -20,19 +20,15 @@ public class AdminDashboard extends JFrame {
 
         JButton manageCashiersButton = new JButton("Manage Cashiers");
         manageCashiersButton.setFont(new Font("Arial", Font.PLAIN, 16));
-        manageCashiersButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                new ManageUserScreen().setVisible(true);
-            }
+        manageCashiersButton.addActionListener((ActionEvent e) -> {
+            new ManageUserScreen().setVisible(true);
         });
         buttonPanel.add(manageCashiersButton);
 
         JButton manageProductsButton = new JButton("Manage Products");
         manageProductsButton.setFont(new Font("Arial", Font.PLAIN, 16));
-        manageProductsButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                new ManageProductScreen().setVisible(true);
-            }
+        manageProductsButton.addActionListener((ActionEvent e) -> {
+            new ManageProductScreen().setVisible(true);
         });
         buttonPanel.add(manageProductsButton);
 

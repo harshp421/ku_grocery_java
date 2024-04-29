@@ -16,4 +16,5 @@ Juice,J001,Drinks,250ml,"Orange juice tetra pack",2.0,100
 Juice,J002,Drinks,1L,"Apple juice carton",3.0,80
 Soda,S001,Drinks,330ml,"Cola can",1.5,120
 Soda,S002,Drinks,2L,"Lemon-lime soda bottle",2.5,90
-daru,d0001,Drink,Large,full,500,120
+daru,d0001,Drink,Large,full,500.0,110
+Eraser,E001,Stationary,Medium,A Eraser that can erase,1.00,10

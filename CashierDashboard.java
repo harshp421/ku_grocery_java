@@ -1,6 +1,8 @@
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -9,15 +11,16 @@ import javax.swing.*;
 
 public class CashierDashboard extends JFrame {
 
-    private JComboBox<String> categoryComboBox;
-    private JComboBox<String> productComboBox;
-    private JComboBox<String> sizeComboBox;
-    private JTextField productIdField;
-    private JTextArea productDetailsArea;
-    private JSpinner quantitySpinner;
-    private LoginPage loginPage;
-    private List<Product> productList;
-    private List<Product> cart;
+    private final JComboBox<String> categoryComboBox;
+    private final JComboBox<String> productComboBox;
+    private final JComboBox<String> sizeComboBox;
+    private final JTextField productIdField;
+    private final JTextArea productDetailsArea;
+    private final JSpinner quantitySpinner;
+    private final LoginPage loginPage;
+    private final List<Product> productList;
+    private final List<Product> cart;
+    private final DefaultListModel<String> cartListModel;
 
     public CashierDashboard(LoginPage loginPage) {
         this.loginPage = loginPage;
@@ -35,13 +38,11 @@ public class CashierDashboard extends JFrame {
         // Category ComboBox
         JLabel categoryLabel = new JLabel("Category:");
         categoryComboBox = new JComboBox<>();
-        categoryComboBox.addItem("Fruits");
-        categoryComboBox.addItem("Vegetables");
-        categoryComboBox.addItem("Dairy");
-        categoryComboBox.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                updateProductComboBox();
-            }
+        categoryComboBox.addItem("Stationary");
+        categoryComboBox.addItem("Sweets");
+        categoryComboBox.addItem("Drinks");
+        categoryComboBox.addActionListener((ActionEvent e) -> {
+            updateProductComboBox();
         });
         selectionPanel.add(categoryLabel);
         selectionPanel.add(categoryComboBox);
@@ -49,10 +50,8 @@ public class CashierDashboard extends JFrame {
         // Product ComboBox
         JLabel productLabel = new JLabel("Product:");
         productComboBox = new JComboBox<>();
-        productComboBox.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                updateProductDetails();
-            }
+        productComboBox.addActionListener((ActionEvent e) -> {
+            updateProductDetails();
         });
         selectionPanel.add(productLabel);
         selectionPanel.add(productComboBox);
@@ -81,27 +80,29 @@ public class CashierDashboard extends JFrame {
 
         // Add Product Button
         JButton addButton = new JButton("Add Product");
-        addButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                addProductToCart();
-            }
+        addButton.addActionListener((ActionEvent e) -> {
+            addProductToCart();
         });
 
         // Cart Panel
+       
+
         JPanel cartPanel = new JPanel(new BorderLayout());
         cartPanel.setBorder(BorderFactory.createTitledBorder("Cart"));
-
-        DefaultListModel<String> cartListModel = new DefaultListModel<>();
+        
+        cartListModel = new DefaultListModel<>();
         JList<String> cartList = new JList<>(cartListModel);
         JScrollPane cartScrollPane = new JScrollPane(cartList);
         cartPanel.add(cartScrollPane, BorderLayout.CENTER);
+        // DefaultListModel<String> cartListModel = new DefaultListModel<>();
+        // JList<String> cartList = new JList<>(cartListModel);
+        // JScrollPane cartScrollPane = new JScrollPane(cartList);
+        // cartPanel.add(cartScrollPane, BorderLayout.CENTER);
 
         // Finish Button
         JButton finishButton = new JButton("Finish");
-        finishButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                generateBill();
-            }
+        finishButton.addActionListener((ActionEvent e) -> {
+            generateBill();
         });
 
         // North panel
@@ -112,13 +113,10 @@ public class CashierDashboard extends JFrame {
         JLabel welcomeLabel = new JLabel("Welcome to Cashier Dashboard");
         leftPanel.add(welcomeLabel);
 
-        JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));   
+        JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         JButton logoutButton = new JButton("Logout");
-        logoutButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                logout();
-            }
+        logoutButton.addActionListener((ActionEvent e) -> {
+            logout();
         });
 
         rightPanel.add(logoutButton);
@@ -151,13 +149,7 @@ public class CashierDashboard extends JFrame {
         productList = new ArrayList<>();
         cart = new ArrayList<>();
 
-        // Sample Products (Replace with your data loading logic)
-        productList.add(new Product("Apple", "P001", "Fruits", "Large", "Fresh and juicy", 1.5, 100));
-        productList.add(new Product("Banana", "P002", "Fruits", "Medium", "Rich in potassium", 1.0, 150));
-        productList.add(new Product("Milk", "P003", "Dairy", "1 liter", "Full fat", 2.5, 50));
-
-        // Initialize product comboboxes
-        updateProductComboBox();
+        loadProductData();
     }
 
     private void logout() {
@@ -169,11 +161,66 @@ public class CashierDashboard extends JFrame {
         String selectedCategory = (String) categoryComboBox.getSelectedItem();
         productComboBox.removeAllItems();
         sizeComboBox.removeAllItems();
+        productIdField.setText(""); 
         for (Product product : productList) {
             if (product.getCategory().equals(selectedCategory)) {
                 productComboBox.addItem(product.getName());
             }
         }
+        // Add an action listener to update size and product ID when a product is selected
+        productComboBox.addActionListener(e -> {
+            updateSizeAndProductId();
+        });
+    }
+
+    private void updateSizeAndProductId() {
+        String selectedProductName = (String) productComboBox.getSelectedItem();
+        if (selectedProductName != null) {
+            for (Product product : productList) {
+                if (product.getName().equals(selectedProductName)) {
+                    sizeComboBox.addItem(product.getSize());  // Populate size combo box
+                    productIdField.setText(product.getProductId());  // Set product ID
+                    break;  // Assuming only one product with a unique name, break after found
+                }
+            }
+        }
+    }
+
+    private void loadProductData() {
+        String csvFile = "products.csv";
+        String line;
+        productList.clear(); // Clear existing product list
+
+        try (BufferedReader br = new BufferedReader(new FileReader(csvFile))) {
+            // Skip the header line if your CSV has headers
+            br.readLine();
+
+            while ((line = br.readLine()) != null) {
+                String[] data = line.split(",");
+
+                // Check if the data has the expected number of elements
+                if (data.length == 7) {
+                    String name = data[0];
+                    String productId = data[1];
+                    String category = data[2];
+                    String size = data[3];
+                    String description = data[4];
+                    double price = Double.parseDouble(data[5]);
+                    int stockQuantity = Integer.parseInt(data[6]);
+
+                    // Add product to the list
+                    productList.add(new Product(name, productId, category, size, description, price, stockQuantity));
+                } else {
+                    // Log or display a message for unexpected data
+                    System.err.println("Skipping invalid data: " + line);
+                }
+            }
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(null, "Error loading product data from file: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+
+        // After loading, you might need to update your product combo boxes
+        updateProductComboBox();
     }
 
     private void updateProductDetails() {
@@ -206,7 +253,7 @@ public class CashierDashboard extends JFrame {
         String selectedSize = (String) sizeComboBox.getSelectedItem();
         String selectedProductId = productIdField.getText().trim();
         int quantity = (int) quantitySpinner.getValue();
-
+    
         for (Product product : productList) {
             if (product.getCategory().equals(selectedCategory)
                     && product.getName().equals(selectedProductName)
@@ -215,13 +262,13 @@ public class CashierDashboard extends JFrame {
                 Product cartProduct = new Product(product.getName(), product.getProductId(), product.getCategory(),
                         product.getSize(), product.getDescription(), product.getPrice(), quantity);
                 cart.add(cartProduct);
-                DefaultListModel<String> cartListModel = (DefaultListModel<String>) ((JList<?>) ((JScrollPane) ((BorderLayout) this.getParent().getLayout()).getLayoutComponent(BorderLayout.EAST)).getViewport().getView()).getModel();
-                cartListModel.addElement("Product: " + cartProduct.getName() + ", Quantity: " + cartProduct.getStockQuantity() + ", Total: " + cartProduct.getPrice());
+                cartListModel.addElement("Product: " + cartProduct.getName() + ", Quantity: " + cartProduct.getStockQuantity() + ", Total: " + cartProduct.getPrice() * quantity);
                 return;
             }
         }
         productDetailsArea.setText("Product not found.");
     }
+    
 
     private void generateBill() {
         double totalAmount = 0;
@@ -242,19 +289,19 @@ public class CashierDashboard extends JFrame {
         }
         double vat = totalAmount * 0.1; // Assuming 10% VAT
         double finalAmount = totalAmount + vat;
-
+    
         billDetails.append("Total Price: $").append(totalAmount).append("\n");
         billDetails.append("VAT (10%): $").append(vat).append("\n");
         billDetails.append("--------------------------------------------------\n");
         billDetails.append("Total Amount (including VAT): $").append(finalAmount).append("\n");
         billDetails.append("--------------------------------------------------\n");
         billDetails.append("Thank you for shopping with us!");
-
+    
         JOptionPane.showMessageDialog(this, billDetails.toString(), "Bill", JOptionPane.INFORMATION_MESSAGE);
-
+    
         // Clear cart after generating bill
         cart.clear();
-        DefaultListModel<String> cartListModel = (DefaultListModel<String>) ((JList<?>) ((JScrollPane) ((BorderLayout) this.getParent().getLayout()).getLayoutComponent(BorderLayout.EAST)).getViewport().getView()).getModel();
-        cartListModel.clear();
+        cartListModel.clear(); // Use direct reference to clear the model
     }
+    
 }

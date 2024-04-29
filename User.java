@@ -1,9 +1,12 @@
+
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 import javax.swing.JOptionPane;
 
 public class User {
+
     private String name;
     private String userId;
     private String password;
@@ -108,14 +111,20 @@ public class User {
     }
 
     // Example usage:
-    
     public static void main(String[] args) {
-        // Update user with userId "admin123" in users.csv
-        User updatedUser = new User("Yash", "admin1234", "newpassword");
-        updatedUser.saveToFile("users.csv");
-        updatedUser.setName("Yash Parmar");
-        updateUser("users.csv", "admin1234", updatedUser);
+        try (Scanner scanner = new Scanner(System.in)) {
+            System.out.println("Enter your username: ");
+            String username = scanner.nextLine();
 
+            System.out.println("Enter your userID: ");
+            String userId = scanner.nextLine();
+
+            System.out.println("Enter your password: ");
+            String password = scanner.nextLine();
+            User newUser = new User(username,userId,password);
+
+            newUser.saveToFile("users.csv");
+        }
     }
-    
+
 }

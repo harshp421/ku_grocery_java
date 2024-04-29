@@ -55,24 +55,22 @@ public class LoginPage extends Frame {
         loginButton.setBounds(150, 200, 100, 30);
         loginButton.setBackground(Color.GREEN);
         loginButton.setForeground(Color.WHITE);
-        loginButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                String userId = userIdField.getText();
-                String password = passwordField.getText();
-                if (userId.equals("Salim") && password.equals("Salim1234")) {
-                    // Admin login
-                    new AdminDashboard().setVisible(true);
-                    setVisible(false);
-                    return;
-                }
-                boolean authenticated = authenticateUser(userId, password);
-                if (authenticated) {
-                    // Cashier login
-                    new CashierDashboard(LoginPage.this).setVisible(true);
-                    setVisible(false);
-                } else {
-                    showMessageDialog("Invalid User ID or Password!");
-                }
+        loginButton.addActionListener((ActionEvent e) -> {
+            String userId = userIdField.getText();
+            String password = passwordField.getText();
+            if (userId.equals("Salim") && password.equals("Salim1234")) {
+                // Admin login
+                new AdminDashboard().setVisible(true);
+                setVisible(false);
+                return;
+            }
+            boolean authenticated = authenticateUser(userId, password);
+            if (authenticated) {
+                // Cashier login
+                new CashierDashboard(LoginPage.this).setVisible(true);
+                setVisible(false);
+            } else {
+                showMessageDialog("Invalid User ID or Password!");
             }
         });
         add(loginButton);
@@ -84,6 +82,7 @@ public class LoginPage extends Frame {
 
         // Handle window close event
         addWindowListener(new WindowAdapter() {
+            @Override
             public void windowClosing(WindowEvent e) {
                 dispose(); // Close the window
             }
@@ -108,7 +107,8 @@ public class LoginPage extends Frame {
                 }
             }
         } catch (IOException ex) {
-            ex.printStackTrace(); // Handle file IO exception
+            // Handle file IO exception
+            
         }
         return false; // No matching user found or error occurred
     }
@@ -122,10 +122,8 @@ public class LoginPage extends Frame {
         dialog.add(label);
         dialog.setLocationRelativeTo(this);
         Button okButton = new Button("OK");
-        okButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                dialog.dispose(); // Close the dialog
-            }
+        okButton.addActionListener((ActionEvent e) -> {
+            dialog.dispose(); // Close the dialog
         });
         okButton.setBackground(Color.GREEN);
         okButton.setForeground(Color.WHITE);
