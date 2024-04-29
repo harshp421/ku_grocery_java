@@ -67,7 +67,7 @@ public class LoginPage extends Frame {
             boolean authenticated = authenticateUser(userId, password);
             if (authenticated) {
                 // Cashier login
-                new CashierDashboard(LoginPage.this).setVisible(true);
+                new CashierDashboard(LoginPage.this, userId, password).setVisible(true);
                 setVisible(false);
             } else {
                 showMessageDialog("Invalid User ID or Password!");

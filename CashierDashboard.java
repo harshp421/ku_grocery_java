@@ -18,11 +18,15 @@ public class CashierDashboard extends JFrame {
     private final JTextArea productDetailsArea;
     private final JSpinner quantitySpinner;
     private final LoginPage loginPage;
+    private final String userId;
     private final List<Product> productList;
     private final List<Product> cart;
     private final DefaultListModel<String> cartListModel;
+  //  private JScrollPane cartScrollPane;
 
-    public CashierDashboard(LoginPage loginPage) {
+
+    public CashierDashboard(LoginPage loginPage,String userId, String password) {
+       this.userId = userId;
         this.loginPage = loginPage;
         setTitle("Cashier Dashboard");
         setSize(800, 600);
@@ -98,6 +102,8 @@ public class CashierDashboard extends JFrame {
         // JList<String> cartList = new JList<>(cartListModel);
         // JScrollPane cartScrollPane = new JScrollPane(cartList);
         // cartPanel.add(cartScrollPane, BorderLayout.CENTER);
+ // Inside the constructor
+       // cartScrollPane = new JScrollPane();
 
         // Finish Button
         JButton finishButton = new JButton("Finish");
@@ -221,6 +227,11 @@ public class CashierDashboard extends JFrame {
 
         // After loading, you might need to update your product combo boxes
         updateProductComboBox();
+        
+        if (!productList.isEmpty()) {
+        productComboBox.setSelectedIndex(0);
+        updateProductDetails();
+    }
     }
 
     private void updateProductDetails() {
@@ -247,27 +258,62 @@ public class CashierDashboard extends JFrame {
         productDetailsArea.setText("Product not found.");
     }
 
-    private void addProductToCart() {
-        String selectedProductName = (String) productComboBox.getSelectedItem();
-        String selectedCategory = (String) categoryComboBox.getSelectedItem();
-        String selectedSize = (String) sizeComboBox.getSelectedItem();
-        String selectedProductId = productIdField.getText().trim();
-        int quantity = (int) quantitySpinner.getValue();
-    
-        for (Product product : productList) {
-            if (product.getCategory().equals(selectedCategory)
-                    && product.getName().equals(selectedProductName)
-                    && product.getSize().equals(selectedSize)
-                    && product.getProductId().equals(selectedProductId)) {
-                Product cartProduct = new Product(product.getName(), product.getProductId(), product.getCategory(),
-                        product.getSize(), product.getDescription(), product.getPrice(), quantity);
-                cart.add(cartProduct);
-                cartListModel.addElement("Product: " + cartProduct.getName() + ", Quantity: " + cartProduct.getStockQuantity() + ", Total: " + cartProduct.getPrice() * quantity);
-                return;
-            }
+private void addProductToCart() {
+    String selectedProductName = (String) productComboBox.getSelectedItem();
+    String selectedCategory = (String) categoryComboBox.getSelectedItem();
+    String selectedSize = (String) sizeComboBox.getSelectedItem();
+    String selectedProductId = productIdField.getText().trim();
+    int quantity = (int) quantitySpinner.getValue();
+
+    // Check if the product already exists in the cart
+    for (Product cartProduct : cart) {
+        if (cartProduct.getCategory().equals(selectedCategory)
+                && cartProduct.getName().equals(selectedProductName)
+                && cartProduct.getSize().equals(selectedSize)
+                && cartProduct.getProductId().equals(selectedProductId)) {
+            // Update the quantity of the existing product in the cart
+            int newQuantity = cartProduct.getStockQuantity() + quantity;
+            cartProduct.setStockQuantity(newQuantity);
+            
+            // Update the quantity in the cart list model
+             int index = -1;
+               for (int i = 0; i < cartListModel.size(); i++) {
+              if (cartListModel.getElementAt(i).startsWith("Product: " + cartProduct.getName())) {
+                  index = i;
+                break;
+             }
+         }
+           // int index = cartListModel.indexOf("Product: " + cartProduct.getName());
+            if (index != -1) {
+                cartListModel.set(index, "Product: " + cartProduct.getName() + ", Quantity: " + cartProduct.getStockQuantity() + ", Total: " + cartProduct.getPrice() * cartProduct.getStockQuantity());
+           
+                }
+                
+            // Update the product details area
+            updateProductDetails();
+            return;
         }
-        productDetailsArea.setText("Product not found.");
     }
+    
+    // If the product does not exist in the cart, add it to the cart list model
+    for (Product product : productList) {
+        if (product.getCategory().equals(selectedCategory)
+                && product.getName().equals(selectedProductName)
+                && product.getSize().equals(selectedSize)
+                && product.getProductId().equals(selectedProductId)) {
+            Product cartProduct = new Product(product.getName(), product.getProductId(), product.getCategory(),
+                    product.getSize(), product.getDescription(), product.getPrice(), quantity);
+            cart.add(cartProduct);
+            cartListModel.addElement("Product: " + cartProduct.getName() + ", Quantity: " + cartProduct.getStockQuantity() + ", Total: " + cartProduct.getPrice() * quantity);
+            return;
+        }
+    }
+    
+    // If the product is not found in the productList, display an error message
+    productDetailsArea.setText("Product not found.");
+}
+
+
     
 
     private void generateBill() {
@@ -275,7 +321,7 @@ public class CashierDashboard extends JFrame {
         StringBuilder billDetails = new StringBuilder();
         billDetails.append("Bill Details:\n");
         billDetails.append("Date: ").append(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date())).append("\n");
-        billDetails.append("Cashier: John Doe\n");
+        billDetails.append("Cashier:").append(userId).append("\n");
         billDetails.append("--------------------------------------------------\n");
         for (Product product : cart) {
             billDetails.append("Product ID: ").append(product.getProductId()).append("\n");
@@ -305,3 +351,5 @@ public class CashierDashboard extends JFrame {
     }
     
 }
+
+
