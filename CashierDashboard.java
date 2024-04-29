@@ -1,3 +1,4 @@
+
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.BufferedReader;
@@ -22,11 +23,10 @@ public class CashierDashboard extends JFrame {
     private final List<Product> productList;
     private final List<Product> cart;
     private final DefaultListModel<String> cartListModel;
-  //  private JScrollPane cartScrollPane;
+    //  private JScrollPane cartScrollPane;
 
-
-    public CashierDashboard(LoginPage loginPage,String userId, String password) {
-       this.userId = userId;
+    public CashierDashboard(LoginPage loginPage, String userId, String password) {
+        this.userId = userId;
         this.loginPage = loginPage;
         setTitle("Cashier Dashboard");
         setSize(800, 600);
@@ -81,7 +81,7 @@ public class CashierDashboard extends JFrame {
         JLabel quantityLabel = new JLabel("Quantity:");
         SpinnerModel quantityModel = new SpinnerNumberModel(1, 1, 100, 1);
         quantitySpinner = new JSpinner(quantityModel);
-
+        
         // Add Product Button
         JButton addButton = new JButton("Add Product");
         addButton.addActionListener((ActionEvent e) -> {
@@ -89,11 +89,9 @@ public class CashierDashboard extends JFrame {
         });
 
         // Cart Panel
-       
-
         JPanel cartPanel = new JPanel(new BorderLayout());
         cartPanel.setBorder(BorderFactory.createTitledBorder("Cart"));
-        
+
         cartListModel = new DefaultListModel<>();
         JList<String> cartList = new JList<>(cartListModel);
         JScrollPane cartScrollPane = new JScrollPane(cartList);
@@ -102,8 +100,8 @@ public class CashierDashboard extends JFrame {
         // JList<String> cartList = new JList<>(cartListModel);
         // JScrollPane cartScrollPane = new JScrollPane(cartList);
         // cartPanel.add(cartScrollPane, BorderLayout.CENTER);
- // Inside the constructor
-       // cartScrollPane = new JScrollPane();
+        // Inside the constructor
+        // cartScrollPane = new JScrollPane();
 
         // Finish Button
         JButton finishButton = new JButton("Finish");
@@ -154,7 +152,10 @@ public class CashierDashboard extends JFrame {
         // Initialize product list and cart
         productList = new ArrayList<>();
         cart = new ArrayList<>();
-
+        productComboBox.addActionListener(e -> {
+            updateProductDetails();  // Update details based on selection
+            updateSizeAndProductId();  // New method to update size and product ID
+        });
         loadProductData();
     }
 
@@ -167,31 +168,26 @@ public class CashierDashboard extends JFrame {
         String selectedCategory = (String) categoryComboBox.getSelectedItem();
         productComboBox.removeAllItems();
         sizeComboBox.removeAllItems();
-        productIdField.setText(""); 
+        productIdField.setText("");
         for (Product product : productList) {
             if (product.getCategory().equals(selectedCategory)) {
                 productComboBox.addItem(product.getName());
             }
         }
-        // Add an action listener to update size and product ID when a product is selected
-        productComboBox.addActionListener(e -> {
-            updateSizeAndProductId();
-        });
+       
     }
 
     private void updateSizeAndProductId() {
+        sizeComboBox.removeAllItems();
         String selectedProductName = (String) productComboBox.getSelectedItem();
-        if (selectedProductName != null) {
-            for (Product product : productList) {
-                if (product.getName().equals(selectedProductName)) {
-                    sizeComboBox.addItem(product.getSize());  // Populate size combo box
-                    productIdField.setText(product.getProductId());  // Set product ID
-                    break;  // Assuming only one product with a unique name, break after found
-                }
+        for (Product product : productList) {
+            if (product.getName().equals(selectedProductName)) {
+                sizeComboBox.addItem(product.getSize());  // Populate size combo box
+                productIdField.setText(product.getProductId());  // Set product ID once for selected product
+                break;  // Assuming only one product with a unique name and size, break after found
             }
         }
     }
-
     private void loadProductData() {
         String csvFile = "products.csv";
         String line;
@@ -227,94 +223,89 @@ public class CashierDashboard extends JFrame {
 
         // After loading, you might need to update your product combo boxes
         updateProductComboBox();
-        
+
         if (!productList.isEmpty()) {
-        productComboBox.setSelectedIndex(0);
-        updateProductDetails();
-    }
+            productComboBox.setSelectedIndex(0);
+            updateProductDetails();
+        }
     }
 
     private void updateProductDetails() {
         String selectedProductName = (String) productComboBox.getSelectedItem();
-        String selectedCategory = (String) categoryComboBox.getSelectedItem();
-        String selectedSize = (String) sizeComboBox.getSelectedItem();
-        String selectedProductId = productIdField.getText().trim();
-
-        for (Product product : productList) {
-            if (product.getCategory().equals(selectedCategory)
-                    && product.getName().equals(selectedProductName)
-                    && product.getSize().equals(selectedSize)
-                    && product.getProductId().equals(selectedProductId)) {
-                String details = "Product ID: " + product.getProductId() + "\n"
-                        + "Category: " + product.getCategory() + "\n"
-                        + "Size: " + product.getSize() + "\n"
-                        + "Description: " + product.getDescription() + "\n"
-                        + "Price: $" + product.getPrice() + "\n"
-                        + "Stock Quantity: " + product.getStockQuantity();
-                productDetailsArea.setText(details);
-                return;
+        if (selectedProductName != null) {
+            for (Product product : productList) {
+                if (product.getName().equals(selectedProductName)) {
+                    String details = buildProductDetails(product);
+                    productDetailsArea.setText(details);
+                    return;
+                }
             }
         }
         productDetailsArea.setText("Product not found.");
     }
 
-private void addProductToCart() {
-    String selectedProductName = (String) productComboBox.getSelectedItem();
-    String selectedCategory = (String) categoryComboBox.getSelectedItem();
-    String selectedSize = (String) sizeComboBox.getSelectedItem();
-    String selectedProductId = productIdField.getText().trim();
-    int quantity = (int) quantitySpinner.getValue();
+    private String buildProductDetails(Product product) {
+        return "Product ID: " + product.getProductId() + "\n"
+                + "Category: " + product.getCategory() + "\n"
+                + "Size: " + product.getSize() + "\n"
+                + "Description: " + product.getDescription() + "\n"
+                + "Price: $" + product.getPrice() + "\n"
+                + "Stock Quantity: " + product.getStockQuantity();
+    }
+    private void addProductToCart() {
+        String selectedProductName = (String) productComboBox.getSelectedItem();
+        String selectedCategory = (String) categoryComboBox.getSelectedItem();
+        String selectedSize = (String) sizeComboBox.getSelectedItem();
+        String selectedProductId = productIdField.getText().trim();
+        int quantity = (int) quantitySpinner.getValue();
 
-    // Check if the product already exists in the cart
-    for (Product cartProduct : cart) {
-        if (cartProduct.getCategory().equals(selectedCategory)
-                && cartProduct.getName().equals(selectedProductName)
-                && cartProduct.getSize().equals(selectedSize)
-                && cartProduct.getProductId().equals(selectedProductId)) {
-            // Update the quantity of the existing product in the cart
-            int newQuantity = cartProduct.getStockQuantity() + quantity;
-            cartProduct.setStockQuantity(newQuantity);
-            
-            // Update the quantity in the cart list model
-             int index = -1;
-               for (int i = 0; i < cartListModel.size(); i++) {
-              if (cartListModel.getElementAt(i).startsWith("Product: " + cartProduct.getName())) {
-                  index = i;
-                break;
-             }
-         }
-           // int index = cartListModel.indexOf("Product: " + cartProduct.getName());
-            if (index != -1) {
-                cartListModel.set(index, "Product: " + cartProduct.getName() + ", Quantity: " + cartProduct.getStockQuantity() + ", Total: " + cartProduct.getPrice() * cartProduct.getStockQuantity());
-           
+        // Check if the product already exists in the cart
+        for (Product cartProduct : cart) {
+            if (cartProduct.getCategory().equals(selectedCategory)
+                    && cartProduct.getName().equals(selectedProductName)
+                    && cartProduct.getSize().equals(selectedSize)
+                    && cartProduct.getProductId().equals(selectedProductId)) {
+                // Update the quantity of the existing product in the cart
+                int newQuantity = cartProduct.getStockQuantity() + quantity;
+                cartProduct.setStockQuantity(newQuantity);
+
+                // Update the quantity in the cart list model
+                int index = -1;
+                for (int i = 0; i < cartListModel.size(); i++) {
+                    if (cartListModel.getElementAt(i).startsWith("Product: " + cartProduct.getName())) {
+                        index = i;
+                        break;
+                    }
                 }
-                
-            // Update the product details area
-            updateProductDetails();
-            return;
-        }
-    }
-    
-    // If the product does not exist in the cart, add it to the cart list model
-    for (Product product : productList) {
-        if (product.getCategory().equals(selectedCategory)
-                && product.getName().equals(selectedProductName)
-                && product.getSize().equals(selectedSize)
-                && product.getProductId().equals(selectedProductId)) {
-            Product cartProduct = new Product(product.getName(), product.getProductId(), product.getCategory(),
-                    product.getSize(), product.getDescription(), product.getPrice(), quantity);
-            cart.add(cartProduct);
-            cartListModel.addElement("Product: " + cartProduct.getName() + ", Quantity: " + cartProduct.getStockQuantity() + ", Total: " + cartProduct.getPrice() * quantity);
-            return;
-        }
-    }
-    
-    // If the product is not found in the productList, display an error message
-    productDetailsArea.setText("Product not found.");
-}
+                // int index = cartListModel.indexOf("Product: " + cartProduct.getName());
+                if (index != -1) {
+                    cartListModel.set(index, "Product: " + cartProduct.getName() + ", Quantity: " + cartProduct.getStockQuantity() + ", Total: " + cartProduct.getPrice() * cartProduct.getStockQuantity());
 
+                }
 
-    
+                // Update the product details area
+                updateProductDetails();
+                return;
+            }
+        }
+
+        // If the product does not exist in the cart, add it to the cart list model
+        for (Product product : productList) {
+            if (product.getCategory().equals(selectedCategory)
+                    && product.getName().equals(selectedProductName)
+                    && product.getSize().equals(selectedSize)
+                    && product.getProductId().equals(selectedProductId)) {
+                Product cartProduct = new Product(product.getName(), product.getProductId(), product.getCategory(),
+                        product.getSize(), product.getDescription(), product.getPrice(), quantity);
+                cart.add(cartProduct);
+                cartListModel.addElement("Product: " + cartProduct.getName() + ", Quantity: " + cartProduct.getStockQuantity() + ", Total: " + cartProduct.getPrice() * quantity);
+                return;
+            }
+        }
+
+        // If the product is not found in the productList, display an error message
+        productDetailsArea.setText("Product not found.");
+    }
 
     private void generateBill() {
         double totalAmount = 0;
@@ -335,21 +326,21 @@ private void addProductToCart() {
         }
         double vat = totalAmount * 0.1; // Assuming 10% VAT
         double finalAmount = totalAmount + vat;
-    
+
         billDetails.append("Total Price: $").append(totalAmount).append("\n");
         billDetails.append("VAT (10%): $").append(vat).append("\n");
         billDetails.append("--------------------------------------------------\n");
         billDetails.append("Total Amount (including VAT): $").append(finalAmount).append("\n");
         billDetails.append("--------------------------------------------------\n");
         billDetails.append("Thank you for shopping with us!");
-    
+
         JOptionPane.showMessageDialog(this, billDetails.toString(), "Bill", JOptionPane.INFORMATION_MESSAGE);
-    
+
         // Clear cart after generating bill
         cart.clear();
         cartListModel.clear(); // Use direct reference to clear the model
     }
-    
+
 }
 
 
