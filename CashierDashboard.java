@@ -2,7 +2,9 @@
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -260,51 +262,67 @@ public class CashierDashboard extends JFrame {
         int quantity = (int) quantitySpinner.getValue();
 
         // Check if the product already exists in the cart
-        for (Product cartProduct : cart) {
-            if (cartProduct.getCategory().equals(selectedCategory)
-                    && cartProduct.getName().equals(selectedProductName)
-                    && cartProduct.getSize().equals(selectedSize)
-                    && cartProduct.getProductId().equals(selectedProductId)) {
-                // Update the quantity of the existing product in the cart
-                int newQuantity = cartProduct.getStockQuantity() + quantity;
-                cartProduct.setStockQuantity(newQuantity);
-
-                // Update the quantity in the cart list model
-                int index = -1;
-                for (int i = 0; i < cartListModel.size(); i++) {
-                    if (cartListModel.getElementAt(i).startsWith("Product: " + cartProduct.getName())) {
-                        index = i;
-                        break;
-                    }
-                }
-                // int index = cartListModel.indexOf("Product: " + cartProduct.getName());
-                if (index != -1) {
-                    cartListModel.set(index, "Product: " + cartProduct.getName() + ", Quantity: " + cartProduct.getStockQuantity() + ", Total: " + cartProduct.getPrice() * cartProduct.getStockQuantity());
-
-                }
-
-                // Update the product details area
-                updateProductDetails();
-                return;
-            }
-        }
-
-        // If the product does not exist in the cart, add it to the cart list model
         for (Product product : productList) {
             if (product.getCategory().equals(selectedCategory)
                     && product.getName().equals(selectedProductName)
                     && product.getSize().equals(selectedSize)
                     && product.getProductId().equals(selectedProductId)) {
-                Product cartProduct = new Product(product.getName(), product.getProductId(), product.getCategory(),
-                        product.getSize(), product.getDescription(), product.getPrice(), quantity);
-                cart.add(cartProduct);
-                cartListModel.addElement("Product: " + cartProduct.getName() + ", Quantity: " + cartProduct.getStockQuantity() + ", Total: " + cartProduct.getPrice() * quantity);
-                return;
+    
+                // Check if there is enough stock to add to the cart
+                if (product.getStockQuantity() >= quantity) {
+                    product.setStockQuantity(product.getStockQuantity() - quantity); // Reduce the stock quantity
+    
+                    // Add or update the product in the cart
+                    boolean foundInCart = false;
+                    for (Product cartProduct : cart) {
+                        if (cartProduct.getProductId().equals(selectedProductId)) {
+                            cartProduct.setStockQuantity(cartProduct.getStockQuantity() + quantity);
+                            foundInCart = true;
+                            break;
+                        }
+                    }
+                    if (!foundInCart) {
+                        cart.add(new Product(product.getName(), product.getProductId(), product.getCategory(),
+                                product.getSize(), product.getDescription(), product.getPrice(), quantity));
+                    }
+    
+                    // Update the cart display
+                    updateCartDisplay();
+                    return;
+                } else {
+                    JOptionPane.showMessageDialog(this, "Insufficient stock available.", "Stock Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
             }
         }
+        JOptionPane.showMessageDialog(this, "Product not found.", "Error", JOptionPane.ERROR_MESSAGE);
+    }
 
-        // If the product is not found in the productList, display an error message
-        productDetailsArea.setText("Product not found.");
+    private void updateCartDisplay() {
+        cartListModel.clear();
+        for (Product cartProduct : cart) {
+            cartListModel.addElement("Product: " + cartProduct.getName() + ", Quantity: " + cartProduct.getStockQuantity() + ", Total: " + cartProduct.getPrice() * cartProduct.getStockQuantity());
+        }
+        updateProductDetails();  // Refresh product details to show updated stock
+    }
+
+   private void saveProductData() {
+        String filename = "products.csv";  // Your filename or a class member variable
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename, false))) { // Open in overwrite mode
+            // Optionally, write headers if your CSV needs them
+            writer.write("Name,ProductID,Category,Size,Description,Price,StockQuantity\n");
+
+            for (Product product : productList) {
+                String productLine = String.format("%s,%s,%s,%s,%s,%.2f,%d\n",
+                        product.getName(), product.getProductId(), product.getCategory(), product.getSize(),
+                        product.getDescription(), product.getPrice(), product.getStockQuantity());
+                writer.write(productLine);
+            }
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(null, "Error occurred while saving product details to file: " + e.getMessage(),
+                    "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     private void generateBill() {
@@ -335,7 +353,8 @@ public class CashierDashboard extends JFrame {
         billDetails.append("Thank you for shopping with us!");
 
         JOptionPane.showMessageDialog(this, billDetails.toString(), "Bill", JOptionPane.INFORMATION_MESSAGE);
-
+        // save product data
+        saveProductData();
         // Clear cart after generating bill
         cart.clear();
         cartListModel.clear(); // Use direct reference to clear the model
